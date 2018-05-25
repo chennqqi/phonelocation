@@ -1,0 +1,75 @@
+<html>
+<head>
+<script src="https://lib.baomitu.com/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://lib.baomitu.com/twitter-bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<link href="https://lib.baomitu.com/twitter-bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="css/index.css" rel="stylesheet">
+ <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+    <title>手机号归属地查询</title>
+    <meta name="keywords"
+          content="手机号,手机号归属地查询,归属地查询">
+    <meta name="description" content="河马安全实验室"></head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-6 col-sm-offset-3">
+            <div id="imaginary_container"> 
+                <div class="input-group stylish-input-group input-append">
+                    <input type="text" id="inip" class="form-control" placeholder="请输入手机号" autocomplete="off" pattern="^1[345678][0-9]{9}$" required>
+                    <span class="input-group-addon">
+                        <button type="submit" id="q">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>  
+                    </span>
+                </div>
+            </div>
+			<div id="myDiv" class="form-group"></div>
+        </div>
+	</div>
+</div>
+
+
+
+<script type="text/javascript">
+
+$(document).ready(function(){	
+	// 限制手机号最多只能输入11位  
+	$("#inip").keydown(function(event) {  
+	    var reg = /^\d{11}$/;  
+	    var value = $(this).val();  
+	    var e = event || window.event || arguments.callee.caller.arguments[0];  
+	      
+	    if(e.keyCode === 8) {  
+	        return true;  
+	    }  	      
+	    if(e.keyCode == 32) {  
+	        return false;  
+	    }  
+	      
+	    if(reg.test(value)) {         
+	        return false;  
+	    }   	      
+	});  
+	
+  $("#q").click(function(){
+		text = $("#inip").val();
+		htmlobj=$.ajax({url:"/location/"+text,async:false});
+        //显示Ajax返回结果
+		
+		var robj = JSON.parse(htmlobj.responseText);
+		var str = JSON.stringify(robj, null, 2);
+		var w = $("#imaginary_container").width();
+        $("#myDiv").html(
+			'<textarea class="comments" rows="8"'+
+			' cols="'+w/20 +'">'+
+			str+
+			'</textarea>');
+  });
+});
+</script>
+
+</body>
+</html>
+

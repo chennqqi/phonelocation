@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/Sirupsen/logrus"
-
 	"github.com/chennqqi/phonedata"
 	"github.com/gin-gonic/gin"
 )
+
+var phoneExp = regexp.MustCompile(`1\d{10}`)
 
 type WebServer struct {
 	pd       *phonedata.PhoneDict
@@ -25,6 +27,12 @@ func (s *WebServer) Run(port int) error {
 	r.GET("/location/:phone", s.location)
 	r.GET("/location", s.locationQuery)
 
+	r.LoadHTMLGlob("assets/*.html")
+	r.Static("/css", "assets/css")
+	r.GET("/", func(c *gin.Context) {
+		c.HTML(200, "index.html", nil)
+	})
+
 	pd, err := phonedata.Parse(DICTNAME)
 	if err != nil {
 		return err
@@ -38,8 +46,18 @@ func (s *WebServer) Run(port int) error {
 func (s *WebServer) location(c *gin.Context) {
 	pd := s.pd
 
-	phone := c.Param("phone")
-	resp, err := pd.Find(phone)
+	phoneNumber := c.Param("phone")
+	if !phoneExp.MatchString(phoneNumber) {
+		var rs = struct {
+			Msg    string `json:"message"`
+			Status int    `json:"status"`
+		}{"无效的手机号", 200}
+
+		c.JSON(200, &rs)
+		return
+	}
+
+	resp, err := pd.Find(phoneNumber)
 	if err == nil {
 		c.JSON(200, resp)
 		return
@@ -104,8 +122,18 @@ func (s *WebServer) liveReload() {
 func (s *WebServer) locationQuery(c *gin.Context) {
 	pd := s.pd
 
-	phone := c.Param("phone")
-	resp, err := pd.Find(phone)
+	phoneNumber, _ := c.GetQuery("phone")
+	if !phoneExp.MatchString(phoneNumber) {
+		var rs = struct {
+			Msg    string `json:"message"`
+			Status int    `json:"status"`
+		}{"无效的手机号", 200}
+
+		c.JSON(200, &rs)
+		return
+	}
+
+	resp, err := pd.Find(phoneNumber)
 	if err == nil {
 		c.JSON(200, resp)
 		return
